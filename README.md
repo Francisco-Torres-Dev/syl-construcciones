@@ -108,7 +108,7 @@ docker compose up -d --build
 
 ## 5. Despliegue
 
-1. Importa el repositorio de GitHub en Vercel. La configuración raíz compila `client/dist` y publica la función de API en `api/[...path].ts`.
+1. Importa el repositorio de GitHub en Vercel. `vercel.json` publica `client` como frontend Vite y `server` como API Express, bajo el mismo dominio.
 2. Crea una base PostgreSQL gestionada y configura en Vercel `DATABASE_URL` (URL de conexión/pool) y `DIRECT_URL` (URL directa), además de `JWT_SECRET` y `CLIENT_URL` con el dominio HTTPS del proyecto.
 3. Inicializa el esquema con `npm run db:setup --prefix server` usando `DIRECT_URL`. Luego crea el administrador con `ADMIN_EMAIL`, `ADMIN_PASSWORD` y `ADMIN_NAME` definidos solo en el entorno de ejecución del comando `npm run seed:admin --prefix server`.
 4. Para adjuntos permanentes en producción, configura `STORAGE_DRIVER=s3` y las variables `S3_*`. No subas valores secretos a GitHub.
