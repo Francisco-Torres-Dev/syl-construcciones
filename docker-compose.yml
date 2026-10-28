@@ -1,0 +1,46 @@
+# Levanta MySQL + API + Web. Uso: docker compose up -d --build   ->  http://localhost:8080
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: sl_root_local
+      MYSQL_DATABASE: sl_construcciones
+    ports: ["3308:3306"]
+    volumes: [dbdata:/var/lib/mysql]
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -psl_root_local --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  server:
+    build: ./server
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      DATABASE_URL: mysql://root:sl_root_local@db:3306/sl_construcciones
+      NODE_ENV: development
+      PORT: "4000"
+      CLIENT_URL: http://localhost:8080
+      JWT_SECRET: clave-solo-para-desarrollo-local-cambiar-en-produccion-123456
+      TRUST_PROXY: "true"
+      STORAGE_DRIVER: local
+      LOCAL_UPLOAD_DIR: /data/uploads
+      # Administrador local de prueba (cambia la clave si lo expones fuera de tu PC)
+      ADMIN_EMAIL: admin@local.test
+      ADMIN_PASSWORD: AdminLocal12345
+      ADMIN_NAME: Administrador
+      # Opcionales: GOOGLE_CLIENT_ID, SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS
+    volumes: [uploads:/data/uploads]
+
+  client:
+    build: ./client
+    restart: unless-stopped
+    depends_on: [server]
+    ports: ["8080:80"]
+
+volumes:
+  dbdata:
+  uploads:

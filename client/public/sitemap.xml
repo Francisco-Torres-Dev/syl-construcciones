@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Dominio provisional: reemplázalo por el definitivo. Agrega /servicios/<slug> según tu catálogo. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://slconstrucciones.cl/</loc></url>
+  <url><loc>https://slconstrucciones.cl/servicios</loc></url>
+  <url><loc>https://slconstrucciones.cl/servicios/construccion-y-ampliaciones</loc></url>
+  <url><loc>https://slconstrucciones.cl/servicios/techumbres-y-cobertizos</loc></url>
+  <url><loc>https://slconstrucciones.cl/servicios/obras-civiles-y-exteriores</loc></url>
+  <url><loc>https://slconstrucciones.cl/servicios/remodelaciones-y-terminaciones</loc></url>
+  <url><loc>https://slconstrucciones.cl/servicios/instalaciones-y-mantenciones</loc></url>
+  <url><loc>https://slconstrucciones.cl/servicios/locales-comerciales-y-cafeterias</loc></url>
+  <url><loc>https://slconstrucciones.cl/servicios/asesorias</loc></url>
+  <url><loc>https://slconstrucciones.cl/servicios/reparaciones-menores</loc></url>
+  <url><loc>https://slconstrucciones.cl/proyectos</loc></url>
+  <url><loc>https://slconstrucciones.cl/nosotros</loc></url>
+  <url><loc>https://slconstrucciones.cl/consejos</loc></url>
+  <url><loc>https://slconstrucciones.cl/contacto</loc></url>
+  <url><loc>https://slconstrucciones.cl/cotizar</loc></url>
+</urlset>

@@ -1,0 +1,168 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  name           String
+  phone          String?
+  passwordHash   String?
+  googleId       String?   @unique
+  role           String    @default("CLIENT")
+  emailVerifiedAt DateTime?
+  verifyTokenHash String?
+  resetTokenHash String?
+  resetExpiresAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  quotes         QuoteRequest[]
+  notifications  Notification[]
+  notes          InternalNote[]
+  auditLogs      AuditLog[]
+}
+
+model QuoteRequest {
+  id              String       @id @default(cuid())
+  code            String       @unique
+  userId          String?
+  user            User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  fullName        String
+  email           String
+  phone           String
+  region          String
+  comuna          String
+  serviceName     String
+  propertyType    String
+  description     String
+  dimensions      String?
+  budget          String?
+  tentativeDate   DateTime?
+  contactPref     String
+  privacyAcceptedAt DateTime
+  status          String       @default("NUEVA")
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  attachments     QuoteAttachment[]
+  notes           InternalNote[]
+  quotations      Quotation[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([comuna])
+  @@index([createdAt])
+  @@index([email])
+}
+
+model Quotation {
+  id          String          @id @default(cuid())
+  requestId   String
+  request     QuoteRequest    @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  status      String          @default("BORRADOR")
+  currency    String          @default("CLP")
+  materials   String?
+  timeline    String?
+  conditions  String?
+  exclusions  String?
+  sentAt      DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  items       QuoteItem[]
+
+  @@index([requestId])
+}
+
+model QuoteItem {
+  id          String    @id @default(cuid())
+  quotationId String
+  quotation   Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  description String
+  quantity    Decimal
+  unitPrice   Decimal
+
+  @@index([quotationId])
+}
+
+model QuoteAttachment {
+  id           String       @id @default(cuid())
+  requestId    String
+  request      QuoteRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  storageKey   String       @unique
+  originalName String
+  mimeType     String
+  size         Int
+  createdAt    DateTime     @default(now())
+
+  @@index([requestId])
+}
+
+model Project {
+  id          String         @id @default(cuid())
+  slug        String         @unique
+  title       String
+  category    String
+  description String
+  isDemo      Boolean        @default(false)
+  published   Boolean        @default(false)
+  sortOrder   Int            @default(0)
+  createdAt   DateTime       @default(now())
+  images      ProjectImage[]
+}
+
+model ProjectImage {
+  id         String  @id @default(cuid())
+  projectId  String
+  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  storageKey String  @unique
+  alt        String
+
+  @@index([projectId])
+}
+
+model InternalNote {
+  id        String       @id @default(cuid())
+  requestId String
+  request   QuoteRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User         @relation(fields: [authorId], references: [id])
+  body      String
+  createdAt DateTime     @default(now())
+
+  @@index([requestId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, read])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  actor     User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  action    String
+  entity    String
+  entityId  String
+  meta      String?
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([actorId])
+}
+
+model Setting {
+  key   String @id
+  value String
+}

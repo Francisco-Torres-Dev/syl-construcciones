@@ -1,0 +1,31 @@
+@import '@fontsource-variable/manrope';
+@import '@fontsource-variable/inter';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body { @apply bg-white text-graphite font-sans antialiased; }
+  h1, h2, h3, h4 { @apply font-display tracking-tight; }
+  :focus-visible { @apply outline outline-2 outline-offset-2 outline-brand; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  }
+}
+
+@layer components {
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-md px-5 py-3 text-sm font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed; }
+  .btn-primary { @apply btn bg-brand text-ink hover:bg-brand-dark hover:-translate-y-0.5; }
+  .btn-dark { @apply btn bg-graphite text-white hover:bg-ink; }
+  .btn-ghost { @apply btn border border-white/30 text-white hover:border-brand hover:text-brand; }
+  .btn-outline { @apply btn border border-graphite/20 text-graphite hover:border-brand hover:text-brand-dark; }
+  .input { @apply w-full rounded-md border border-graphite/20 bg-white px-3 py-2.5 text-sm text-graphite placeholder:text-steel focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30; }
+  .label { @apply mb-1.5 block text-sm font-medium text-graphite; }
+  .err { @apply mt-1 text-xs text-red-600; }
+  .container-x { @apply mx-auto w-full max-w-6xl px-5 sm:px-8; }
+  .section { @apply py-20 sm:py-28; }
+  .card { @apply rounded-lg border border-graphite/10 bg-white; }
+  .grid-lines { background-image: linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px); background-size: 56px 56px; }
+}

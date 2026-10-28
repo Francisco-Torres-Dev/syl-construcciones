@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /cuenta
+Disallow: /ingresar
+Disallow: /registro
+
+# Reemplaza el dominio cuando esté registrado.
+Sitemap: https://slconstrucciones.cl/sitemap.xml
