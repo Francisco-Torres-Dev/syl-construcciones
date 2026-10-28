@@ -110,7 +110,7 @@ docker compose up -d --build
 
 1. Importa el repositorio de GitHub en Vercel, usando la raíz del repositorio como **Root Directory**. El frontend se compila a `client/dist` y `api/index.ts` publica Express como una función de Vercel; la regla de rewrite conserva la ruta de cada endpoint bajo `/api`. La instalación de Vercel ejecuta `npm run install:all` para respetar los lockfiles separados de `client` y `server`.
 2. Crea una base PostgreSQL gestionada y configura en Vercel `DATABASE_URL` (URL de conexión/pool) y `DIRECT_URL` (URL directa), además de `JWT_SECRET` y `CLIENT_URL` con el dominio HTTPS del proyecto.
-3. Inicializa el esquema con `npm run db:setup --prefix server` usando `DIRECT_URL`. Luego crea el administrador con `ADMIN_EMAIL`, `ADMIN_PASSWORD` y `ADMIN_NAME` definidos solo en el entorno de ejecución del comando `npm run seed:admin --prefix server`.
+3. En los despliegues de producción, Vercel sincroniza el esquema Prisma con `DIRECT_URL` antes de compilar. El paso se omite en Preview y en desarrollo local. Luego crea el administrador con `ADMIN_EMAIL`, `ADMIN_PASSWORD` y `ADMIN_NAME` definidos solo en el entorno de ejecución del comando `npm run seed:admin --prefix server`.
 4. Para adjuntos permanentes en producción, configura `STORAGE_DRIVER=s3` y las variables `S3_*`. No subas valores secretos a GitHub.
 
 ## 6. Logos
