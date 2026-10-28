@@ -4,6 +4,7 @@ import path from 'path';
 import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import type { Readable } from 'stream';
 import { config } from '../config';
+import { HttpError } from './errors';
 
 const s3 = () =>
   new S3Client({
@@ -27,6 +28,9 @@ export async function saveFile(buf: Buffer, ext: string, folder: string, mime: s
   if (config.storage.driver === 's3') {
     await s3().send(new PutObjectCommand({ Bucket: config.storage.s3.bucket, Key: key, Body: buf, ContentType: mime }));
   } else {
+    if (config.isProd && process.env.VERCEL) {
+      throw new HttpError(503, 'El almacenamiento persistente de archivos no está configurado.');
+    }
     const full = localPath(key);
     await fs.mkdir(path.dirname(full), { recursive: true });
     await fs.writeFile(full, buf);

@@ -2,7 +2,7 @@
 
 Sitio público, cotizaciones con adjuntos, cuentas de cliente, acceso con Google y panel de administración.
 
-**Stack:** React + TypeScript + Vite + Tailwind + Motion · Node + Express + TypeScript · SQLite local + Prisma · Zod.
+**Stack:** React + TypeScript + Vite + Tailwind + Motion · Node + Express + TypeScript · PostgreSQL gestionado + Prisma · Zod.
 
 ```
 sl-construcciones/
@@ -19,18 +19,18 @@ sl-construcciones/
 | Logos SVG + PNG, favicon | Generados y revisados (`npm run logos` en `client`) |
 | Frontend: tipos y compilación de producción | Verificado (`tsc` y `vite build` sin errores) |
 | API: pruebas automatizadas (validación y control de acceso, con base simulada) | 15/15 pasan |
-| API y base de datos | SQLite local; no requiere un servidor MySQL |
+| API y base de datos | API compatible con Vercel Functions; PostgreSQL se configura mediante variables de entorno |
 | Imágenes de servicios | Ilustraciones SVG locales, independientes de las fotos reales del portafolio |
 | Google OAuth, correo SMTP, almacenamiento S3 | Implementados; requieren tus credenciales (sección 4) |
 | Catálogo público | Servicios y proyectos locales del frontend; sus páginas no dependen de la base de datos |
 
-Las cuentas nuevas se guardan en la base SQLite local. Para entrar como administrador, inicia sesión en `/ingresar`; una cuenta con rol ADMIN se dirige al panel `/admin`. La lista de personas registradas está en `/admin/clientes`.
+Las cuentas nuevas se guardan en PostgreSQL. Para entrar como administrador, inicia sesión en `/ingresar`; una cuenta con rol ADMIN se dirige al panel `/admin`. La lista de personas registradas está en `/admin/clientes`.
 
 ---
 
 ## 2. Puesta en marcha en Windows (PowerShell)
 
-Requisitos: Node.js 20+. No se necesita instalar ni levantar un servidor de base de datos.
+Requisitos: Node.js 20+ y una instancia PostgreSQL gestionada (por ejemplo, Neon). No se necesita instalar PostgreSQL en el equipo.
 
 ```powershell
 # 1) Dependencias
@@ -40,11 +40,11 @@ npm run install:all
 # 2) Variables de entorno
 Copy-Item server\.env.example server\.env
 Copy-Item client\.env.example client\.env
-# SQLite se guarda en server/prisma/sl-construcciones.db.
+# Edita server\.env con DATABASE_URL (pool de conexiones) y DIRECT_URL (conexión directa).
 # Para producción, define un JWT_SECRET propio. Para generar uno:
 node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 
-# 3) Inicializar el esquema SQLite
+# 3) Inicializar el esquema PostgreSQL
 cd server
 npx prisma generate
 npm run db:setup
@@ -59,11 +59,18 @@ npm run dev:server      # API en http://localhost:4000
 npm run dev:client      # Web en http://localhost:5173
 ```
 
-El comando `npm run dev` de la API crea o actualiza el archivo SQLite automáticamente. Panel de administración: `http://localhost:5173/admin` (ingresa con el administrador creado); selecciona **Personas registradas** para consultar las cuentas.
+El comando `npm run dev` de la API sincroniza el esquema PostgreSQL al iniciar. Panel de administración: `http://localhost:5173/admin` (ingresa con el administrador creado); selecciona **Personas registradas** para consultar las cuentas.
 
 ### Pruebas
 ```powershell
 npm test
+```
+
+### Docker Compose (PostgreSQL local)
+```powershell
+Copy-Item .env.example .env
+# Cambia POSTGRES_PASSWORD y JWT_SECRET por valores aleatorios antes de iniciar.
+docker compose up -d --build
 ```
 
 ---
@@ -76,7 +83,7 @@ npm test
 - **Panel del cliente:** resumen, datos, solicitudes con estado, cotizaciones recibidas y notificaciones. Solo ve lo propio.
 - **Panel admin:** indicadores, búsqueda y filtros de cotizaciones, notas internas, cambio de estado, propuesta económica, historial, personas registradas y configuración.
 - **Seguridad:** hash bcrypt, cookie `httpOnly` + `SameSite=Lax` (+ `Secure` en producción), encabezado anti-CSRF, CORS restrictivo, Helmet, límites de peticiones, validación Zod, ORM, rol siempre leído desde la base de datos, propiedad verificada en cada recurso, adjuntos solo para su dueño o admin, auditoría de acciones administrativas.
-- **Roles:** `CLIENT` y `ADMIN` (modelo simple). El rol se verifica desde SQLite en cada petición protegida.
+- **Roles:** `CLIENT` y `ADMIN` (modelo simple). El rol se verifica desde PostgreSQL en cada petición protegida.
 
 ---
 
@@ -89,7 +96,7 @@ npm test
 
 **Correo (SMTP / transaccional)** — completa `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`, `ADMIN_NOTIFY_EMAIL`. Sin SMTP, los correos **no se envían** y el servidor lo registra en el log. Verifica el dominio de envío (SPF/DKIM) con tu proveedor.
 
-**Almacenamiento** — por defecto guarda en `server/uploads` (solo desarrollo). Para producción usa S3 o compatible (R2, MinIO): `STORAGE_DRIVER=s3` y las variables `S3_*`. El bucket debe ser **privado**; la API sirve los archivos con control de acceso.
+**Almacenamiento** — por defecto guarda en `server/uploads` (solo desarrollo). Para producción usa S3 o compatible (R2, MinIO): `STORAGE_DRIVER=s3` y las variables `S3_*`. El bucket debe ser **privado**; la API sirve los archivos con control de acceso. El sistema de archivos de Vercel es efímero, por lo que los adjuntos subidos requieren este almacenamiento externo.
 
 **WhatsApp, teléfono, redes, cobertura, horarios** — Admin → Configuración.
 
@@ -101,10 +108,10 @@ npm test
 
 ## 5. Despliegue
 
-1. `npm run build` (compila API en `server/dist` y web en `client/dist`).
-2. API: `NODE_ENV=production`, `CLIENT_URL` con tu dominio HTTPS, `JWT_SECRET` fuerte y `npm run db:setup` desde `server`; ejecuta `node server/dist/index.js` detrás de un proxy HTTPS.
-3. Web: sirve `client/dist` como sitio estático y haz que `/api` apunte a la API (mismo dominio mediante proxy inverso, necesario para la cookie de sesión), con *fallback* a `index.html` para las rutas de React.
-4. Usa almacenamiento persistente para el archivo SQLite (por defecto `server/prisma/sl-construcciones.db`) y para `server/uploads`; respalda ambos. En producción, SQLite debe estar en un disco persistente accesible a una sola instancia de la API. Vercel no ofrece ese disco persistente para una SQLite local; para publicar el frontend allí y conservar cuentas/cotizaciones, aloja la API en un servicio con disco persistente y enruta `/api` hacia esa API, o migra a una base de datos gestionada.
+1. Importa el repositorio de GitHub en Vercel. La configuración raíz compila `client/dist` y publica la función de API en `api/[...path].ts`.
+2. Crea una base PostgreSQL gestionada y configura en Vercel `DATABASE_URL` (URL de conexión/pool) y `DIRECT_URL` (URL directa), además de `JWT_SECRET` y `CLIENT_URL` con el dominio HTTPS del proyecto.
+3. Inicializa el esquema con `npm run db:setup --prefix server` usando `DIRECT_URL`. Luego crea el administrador con `ADMIN_EMAIL`, `ADMIN_PASSWORD` y `ADMIN_NAME` definidos solo en el entorno de ejecución del comando `npm run seed:admin --prefix server`.
+4. Para adjuntos permanentes en producción, configura `STORAGE_DRIVER=s3` y las variables `S3_*`. No subas valores secretos a GitHub.
 
 ## 6. Logos
 

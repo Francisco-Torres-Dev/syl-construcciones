@@ -1,15 +1,16 @@
-# Levanta MySQL + API + Web. Uso: docker compose up -d --build   ->  http://localhost:8080
+# Levanta PostgreSQL + API + Web. Configura primero las variables del archivo .env.
 services:
   db:
-    image: mysql:8.0
+    image: postgres:16
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: sl_root_local
-      MYSQL_DATABASE: sl_construcciones
-    ports: ["3308:3306"]
-    volumes: [dbdata:/var/lib/mysql]
+      POSTGRES_DB: ${POSTGRES_DB:-sl_construcciones}
+      POSTGRES_USER: ${POSTGRES_USER:-sl_app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env}
+    ports: ["5433:5432"]
+    volumes: [dbdata:/var/lib/postgresql/data]
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -psl_root_local --silent"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sl_app} -d ${POSTGRES_DB:-sl_construcciones}"]
       interval: 5s
       timeout: 5s
       retries: 30
@@ -20,19 +21,18 @@ services:
     depends_on:
       db: { condition: service_healthy }
     environment:
-      DATABASE_URL: mysql://root:sl_root_local@db:3306/sl_construcciones
+      DATABASE_URL: postgresql://${POSTGRES_USER:-sl_app}:${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env}@db:5432/${POSTGRES_DB:-sl_construcciones}?schema=public
+      DIRECT_URL: postgresql://${POSTGRES_USER:-sl_app}:${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env}@db:5432/${POSTGRES_DB:-sl_construcciones}?schema=public
       NODE_ENV: development
       PORT: "4000"
       CLIENT_URL: http://localhost:8080
-      JWT_SECRET: clave-solo-para-desarrollo-local-cambiar-en-produccion-123456
+      JWT_SECRET: ${JWT_SECRET:?Define JWT_SECRET en .env}
       TRUST_PROXY: "true"
       STORAGE_DRIVER: local
       LOCAL_UPLOAD_DIR: /data/uploads
-      # Administrador local de prueba (cambia la clave si lo expones fuera de tu PC)
-      ADMIN_EMAIL: admin@local.test
-      ADMIN_PASSWORD: AdminLocal12345
-      ADMIN_NAME: Administrador
-      # Opcionales: GOOGLE_CLIENT_ID, SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      ADMIN_NAME: ${ADMIN_NAME:-Administrador}
     volumes: [uploads:/data/uploads]
 
   client:

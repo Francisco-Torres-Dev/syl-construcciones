@@ -5,7 +5,6 @@
   "main": "dist/index.js",
   "scripts": {
     "predev": "npm run db:setup",
-    "prestart": "npm run db:setup",
     "dev": "tsx watch src/index.ts",
     "build": "prisma generate && tsc -p tsconfig.json",
     "start": "node dist/index.js",

@@ -27,7 +27,7 @@ export const config = {
   },
   storage: {
     driver: (env.STORAGE_DRIVER ?? 'local') as 'local' | 's3',
-    localDir: env.LOCAL_UPLOAD_DIR ?? 'uploads',
+    localDir: env.LOCAL_UPLOAD_DIR ?? (env.VERCEL ? '/tmp/sl-construcciones-uploads' : 'uploads'),
     s3: {
       bucket: env.S3_BUCKET ?? '',
       region: env.S3_REGION ?? 'auto',
